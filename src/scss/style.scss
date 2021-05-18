@@ -23,7 +23,11 @@ picture {
   font-family: comfortaa;
 }
 
-.divider {
+.main__img {
+  display: contents;
+}
+
+.main__divider {
   display: block;
-  width: 100%;
+  width: 80%;
 }

@@ -1,23 +1,28 @@
-// npm install -D browser-sync gulp-file-include del gulp-dart-sass gulp-autoprefixer gulp-group-css-media-queries gulp-clean-css gulp-rename gulp-uglify-es gulp-imagemin gulp-webp gulp-webp-html gulp-webp-css gulp-ttf2woff gulp-ttf2woff2 gulp-fonter
-
+// npm init -y && npm install -D browser-sync gulp-file-include gulp-pug del gulp-dart-sass gulp-autoprefixer gulp-group-css-media-queries gulp-clean-css gulp-rename gulp-uglify-es gulp-htmlmin gulp-imagemin gulp-webp gulp-webp-html gulp-webp-css gulp-ttf2woff gulp-ttf2woff2 gulp-fonter
 const { src, dest, task, series, parallel, watch } = require('gulp');
-const browserSync = require('browser-sync').create();
-const fileInclude = require('gulp-file-include');
+const fs = require('fs');
 const cleanBuildFolder = require('del');
+const rename = require('gulp-rename');
+const browserSync = require('browser-sync').create();
+
+const webpHtml = require('gulp-webp-html');
+const htmlMin = require('gulp-htmlmin');
+const pug = require('gulp-pug');
+const fileInclude = require('gulp-file-include');
+
 const sass = require('gulp-dart-sass');
 const prefixer = require('gulp-autoprefixer');
 const groupMediaQueries = require('gulp-group-css-media-queries');
 const cleanCss = require('gulp-clean-css');
-const rename = require('gulp-rename');
+
 const uglifyES = require('gulp-uglify-es').default;
 const imageMin = require('gulp-imagemin');
 const webp = require('gulp-webp');
-const webpHtml = require('gulp-webp-html');
 const webpCss = require('gulp-webp-css');
+
 const ttf2woff = require('gulp-ttf2woff');
 const ttf2woff2 = require('gulp-ttf2woff2');
 const fonter = require('gulp-fonter');
-const fs = require('fs');
 
 const srcFolderName = 'src';
 const buildFolderName = 'build';
@@ -32,6 +37,7 @@ const path = {
   },
   src: {
     html: [`${srcFolderName}/html/*.html`, `!${srcFolderName}/html/_*.html`],
+    pug: [`${srcFolderName}/pug/*.pug`, `!${srcFolderName}/pug/_*.pug`],
     css: `${srcFolderName}/scss/style.scss`,
     js: `${srcFolderName}/js/script.js`,
     img: `${srcFolderName}/img/**/*.{jpg,png,svg,gif,ico,webp}`,
@@ -39,6 +45,7 @@ const path = {
   },
   watch: {
     html: `${srcFolderName}/**/*.html`,
+    pug: `${srcFolderName}/**/*.pug`,
     css: `${srcFolderName}/scss/**/*.scss`,
     js: `${srcFolderName}/js/**/*.js`,
     img: `${srcFolderName}/img/**/*.{jpg,png,svg,gif,ico,webp}`,
@@ -62,8 +69,25 @@ const cleanBuildFolderTask = (params) => {
 
 const htmlTask = () => {
   return src(path.src.html)
-    .pipe(fileInclude())
     .pipe(webpHtml())
+    .pipe(
+      htmlMin({
+        collapseWhitespace: true,
+      })
+    )
+    .pipe(dest(path.build.html))
+    .pipe(browserSync.stream());
+};
+
+const pugTask = () => {
+  return src(path.src.pug)
+    .pipe(pug({ pretty: true }))
+    .pipe(webpHtml())
+    .pipe(
+      htmlMin({
+        collapseWhitespace: true,
+      })
+    )
     .pipe(dest(path.build.html))
     .pipe(browserSync.stream());
 };
@@ -157,8 +181,9 @@ task('otf2ttf', () => {
   );
 });
 
-const watchForFilesTask = (params) => {
-  watch([path.watch.html], htmlTask);
+const watchersTask = (params) => {
+  // watch([path.watch.html], htmlTask);
+  watch([path.watch.pug], pugTask);
   watch([path.watch.css], sassTask);
   watch([path.watch.js], jsTask);
   watch([path.watch.img], imgTask);
@@ -166,13 +191,14 @@ const watchForFilesTask = (params) => {
 
 const buildTasksSet = series(
   cleanBuildFolderTask,
-  parallel(htmlTask, sassTask, jsTask, imgTask, fontsTransformTask),
+  parallel(pugTask, sassTask, jsTask, imgTask, fontsTransformTask),
   fontsConnectToStyleTask
 );
-const watchTasksSet = parallel(watchForFilesTask, browserSyncTask);
+const watchTasksSet = parallel(watchersTask, browserSyncTask);
 const defaultTasksSet = parallel(buildTasksSet, watchTasksSet);
 
 exports.html = htmlTask;
+exports.pug = pugTask;
 exports.css = sassTask;
 exports.js = jsTask;
 exports.images = imgTask;

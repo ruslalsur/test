@@ -1,0 +1,12 @@
+extends _layout.pug
+
+block title
+  title Стр2
+block header
+  - const headerText = 'Не главная страница'
+block content
+  .main__img
+      img(src="img/img-1.jpg", alt="img-1", width="30%")
+      a(href="index.html") Назад
+block script  
+    script(src="js/script.min.js")

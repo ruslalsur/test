@@ -1,0 +1,29 @@
+@mixin font($font_name, $file_name, $weight, $style) {
+  @font-face {
+    font-family: $font_name;
+    font-display: swap;
+    font-style: #{$style};
+    font-weight: #{$weight};
+    src: url('../fonts/#{$file_name}.woff') format('woff'),
+      url('../fonts/#{$file_name}.woff2') format('woff2');
+  }
+}
+
+@import '_fonts';
+
+$color: rgb(255, 0, 0);
+body,
+main,
+picture {
+  color: $color;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: none;
+  font-family: ruslan-display-v13-latin_cyrillic-regular;
+}
+
+.divider {
+  display: block;
+  width: 100%;
+}

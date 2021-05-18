@@ -1,0 +1,1 @@
+window.onload = @@include('alert.js')

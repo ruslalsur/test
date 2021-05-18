@@ -1,4 +1,4 @@
-// npm init -y && npm install -D browser-sync gulp-file-include gulp-pug del gulp-dart-sass gulp-autoprefixer gulp-group-css-media-queries gulp-clean-css gulp-rename gulp-uglify-es gulp-htmlmin gulp-imagemin gulp-webp gulp-webp-html gulp-webp-css gulp-ttf2woff gulp-ttf2woff2 gulp-fonter
+// npm init -y && npm install -D browser-sync gulp-file-include gulp-pug del gulp-dart-sass gulp-autoprefixer gulp-group-css-media-queries gulp-clean-css gulp-rename gulp-babel @babel/core @babel/preset-env gulp-uglify-es gulp-htmlmin gulp-imagemin gulp-webp gulp-webp-html gulp-webp-css gulp-ttf2woff gulp-ttf2woff2 gulp-fonter
 const { src, dest, task, series, parallel, watch } = require('gulp');
 const fs = require('fs');
 const cleanBuildFolder = require('del');
@@ -15,7 +15,9 @@ const prefixer = require('gulp-autoprefixer');
 const groupMediaQueries = require('gulp-group-css-media-queries');
 const cleanCss = require('gulp-clean-css');
 
+const babel = require('gulp-babel');
 const uglifyES = require('gulp-uglify-es').default;
+
 const imageMin = require('gulp-imagemin');
 const webp = require('gulp-webp');
 const webpCss = require('gulp-webp-css');
@@ -108,6 +110,11 @@ const sassTask = () => {
 const jsTask = () => {
   return src(path.src.js)
     .pipe(fileInclude())
+    .pipe(
+      babel({
+        presets: ['@babel/env'],
+      })
+    )
     .pipe(dest(path.build.js))
     .pipe(uglifyES())
     .pipe(rename({ extname: '.min.js' }))

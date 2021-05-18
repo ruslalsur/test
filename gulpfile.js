@@ -1,7 +1,6 @@
 // npm install -D browser-sync gulp-file-include del gulp-dart-sass gulp-autoprefixer gulp-group-css-media-queries gulp-clean-css gulp-rename gulp-uglify-es gulp-imagemin gulp-webp gulp-webp-html gulp-webp-css gulp-ttf2woff gulp-ttf2woff2 gulp-fonter
 
-const gulp = require('gulp');
-const { src, dest, task } = require('gulp');
+const { src, dest, task, series, parallel, watch } = require('gulp');
 const browserSync = require('browser-sync').create();
 const fileInclude = require('gulp-file-include');
 const cleanBuildFolder = require('del');
@@ -44,21 +43,21 @@ const path = {
     js: `${srcFolderName}/js/**/*.js`,
     img: `${srcFolderName}/img/**/*.{jpg,png,svg,gif,ico,webp}`,
   },
-  clean: `./${buildFolderName}/`,
 };
 
 const browserSyncTask = (params) => {
   browserSync.init({
     server: {
-      baseDir: `${buildFolderName}/`,
+      baseDir: `./${buildFolderName}/`,
     },
     port: 3000,
     notify: false,
+    browser: ['google-chrome-stable'],
   });
 };
 
 const cleanBuildFolderTask = (params) => {
-  return cleanBuildFolder(path.clean);
+  return cleanBuildFolder(`./${buildFolderName}/`);
 };
 
 const htmlTask = () => {
@@ -115,14 +114,17 @@ const imgTask = () => {
 
 const fontsTransformTask = () => {
   src(path.src.fonts).pipe(ttf2woff()).pipe(dest(path.build.fonts));
-  return src(path.src.fonts).pipe(ttf2woff2()).pipe(dest(path.build.fonts));
+  return src(path.src.fonts)
+    .pipe(ttf2woff2())
+    .pipe(dest(path.build.fonts))
+    .pipe(browserSync.stream());
 };
 
 const fontsConnectToStyleTask = (params) => {
   let file_content = fs.readFileSync(srcFolderName + '/scss/_fonts.scss');
   if (file_content == '') {
     fs.writeFile(srcFolderName + '/scss/_fonts.scss', '', cb);
-    return fs.readdir(path.build.fonts, function (err, items) {
+    return fs.readdir(path.build.fonts, (err, items) => {
       if (items) {
         let c_fontname;
         for (var i = 0; i < items.length; i++) {
@@ -131,7 +133,7 @@ const fontsConnectToStyleTask = (params) => {
           if (c_fontname != fontname) {
             fs.appendFile(
               srcFolderName + '/scss/_fonts.scss',
-              '@include font("' +
+              '@include fontFaceGenerate("' +
                 fontname +
                 '", "' +
                 fontname +
@@ -156,22 +158,19 @@ task('otf2ttf', () => {
 });
 
 const watchForFilesTask = (params) => {
-  gulp.watch([path.watch.html], htmlTask);
-  gulp.watch([path.watch.css], sassTask);
-  gulp.watch([path.watch.js], jsTask);
-  gulp.watch([path.watch.img], imgTask);
+  watch([path.watch.html], htmlTask);
+  watch([path.watch.css], sassTask);
+  watch([path.watch.js], jsTask);
+  watch([path.watch.img], imgTask);
 };
 
-const streamTasks1 = gulp.series(
+const buildTasksSet = series(
   cleanBuildFolderTask,
-  gulp.parallel(htmlTask, sassTask, jsTask, imgTask, fontsTransformTask),
+  parallel(htmlTask, sassTask, jsTask, imgTask, fontsTransformTask),
   fontsConnectToStyleTask
 );
-const streamTasks2 = gulp.parallel(
-  streamTasks1,
-  watchForFilesTask,
-  browserSyncTask
-);
+const watchTasksSet = parallel(watchForFilesTask, browserSyncTask);
+const defaultTasksSet = parallel(buildTasksSet, watchTasksSet);
 
 exports.html = htmlTask;
 exports.css = sassTask;
@@ -179,6 +178,6 @@ exports.js = jsTask;
 exports.images = imgTask;
 exports.fonts = fontsTransformTask;
 exports.fontsStyle = fontsConnectToStyleTask;
-exports.build = streamTasks1;
-exports.watch = streamTasks2;
-exports.default = streamTasks2;
+exports.build = buildTasksSet;
+exports.watch = watchTasksSet;
+exports.default = defaultTasksSet;

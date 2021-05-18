@@ -1,4 +1,4 @@
-@include font("comfortaa-v30-cyrillic-ext-regular", "comfortaa-v30-cyrillic-ext-regular", "400", "normal");
-@include font("neucha-v12-latin_cyrillic-regular", "neucha-v12-latin_cyrillic-regular", "400", "normal");
-@include font("ruslan-display-v13-latin_cyrillic-regular", "ruslan-display-v13-latin_cyrillic-regular", "400", "normal");
-@include font("yanone-kaffeesatz-v16-cyrillic-regular", "yanone-kaffeesatz-v16-cyrillic-regular", "400", "normal");
+@include fontFaceGenerate("comfortaa", "comfortaa", "400", "normal");
+@include fontFaceGenerate("neucha", "neucha", "400", "normal");
+@include fontFaceGenerate("ruslan", "ruslan", "400", "normal");
+@include fontFaceGenerate("yanone-kaffeesatz", "yanone-kaffeesatz", "400", "normal");

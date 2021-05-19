@@ -1,5 +1,3 @@
-function tt() {
-  alert('никаму не сздрасте!!!');
+const testAlert = (text) => {
+  setTimeout(() => alert(text), 5000)
 }
-
-tt();

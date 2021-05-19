@@ -1,1 +1,3 @@
-window.onload = @@include('alert.js')
+@@include('./alert.js')
+
+window.onload = testAlert('НИкаму не здрасте!')

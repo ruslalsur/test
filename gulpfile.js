@@ -1,4 +1,4 @@
-// npm init -y && npm install -D browser-sync gulp-file-include gulp-pug del gulp-dart-sass gulp-autoprefixer gulp-group-css-media-queries gulp-clean-css gulp-rename gulp-babel @babel/core @babel/preset-env gulp-uglify-es gulp-htmlmin gulp-imagemin gulp-webp gulp-webp-html gulp-webp-css gulp-ttf2woff gulp-ttf2woff2 gulp-fonter
+// npm init -y && npm install -D browser-sync gulp-file-include gulp-pug del gulp-dart-sass gulp-autoprefixer gulp-group-css-media-queries gulp-clean-css gulp-rename gulp-typescript typescript gulp-babel @babel/core @babel/preset-env gulp-uglify-es gulp-htmlmin gulp-imagemin gulp-webp gulp-webp-html gulp-webp-css gulp-ttf2woff gulp-ttf2woff2 gulp-fonter
 const { src, dest, task, series, parallel, watch } = require('gulp')
 const fs = require('fs')
 const cleanBuildFolder = require('del')
@@ -15,6 +15,7 @@ const prefixer = require('gulp-autoprefixer')
 const groupMediaQueries = require('gulp-group-css-media-queries')
 const cleanCss = require('gulp-clean-css')
 
+const ts = require('gulp-typescript')
 const babel = require('gulp-babel')
 const uglifyES = require('gulp-uglify-es').default
 
@@ -41,6 +42,7 @@ const path = {
     html: [`${srcFolderName}/html/*.html`, `!${srcFolderName}/html/_*.html`],
     pug: [`${srcFolderName}/pug/*.pug`, `!${srcFolderName}/pug/_*.pug`],
     css: `${srcFolderName}/scss/style.scss`,
+    ts: `${srcFolderName}/ts/script.ts`,
     js: `${srcFolderName}/js/script.js`,
     img: `${srcFolderName}/img/**/*.{jpg,png,svg,gif,ico,webp}`,
     fonts: `${srcFolderName}/fonts/*.ttf`,
@@ -50,6 +52,7 @@ const path = {
     pug: `${srcFolderName}/**/*.pug`,
     css: `${srcFolderName}/scss/**/*.scss`,
     js: `${srcFolderName}/js/**/*.js`,
+    ts: `${srcFolderName}/ts/**/*.ts`,
     img: `${srcFolderName}/img/**/*.{jpg,png,svg,gif,ico,webp}`,
   },
 }
@@ -110,6 +113,27 @@ const sassTask = () => {
 const jsTask = () => {
   return src(path.src.js)
     .pipe(fileInclude())
+    .pipe(
+      babel({
+        presets: ['@babel/env'],
+      })
+    )
+    .pipe(dest(path.build.js))
+    .pipe(uglifyES())
+    .pipe(rename({ extname: '.min.js' }))
+    .pipe(dest(path.build.js))
+    .pipe(browserSync.stream())
+}
+
+const tsTask = () => {
+  return src(path.src.ts)
+    .pipe(fileInclude())
+    .pipe(
+      ts({
+        noImplicitAny: true,
+        outFile: `./${path.src.ts}/js`,
+      })
+    )
     .pipe(
       babel({
         presets: ['@babel/env'],
@@ -192,7 +216,8 @@ const watchersTask = (params) => {
   // watch([path.watch.html], htmlTask);
   watch([path.watch.pug], pugTask)
   watch([path.watch.css], sassTask)
-  watch([path.watch.js], jsTask)
+  // watch([path.watch.js], jsTask)
+  watch([path.watch.ts], tsTask)
   watch([path.watch.img], imgTask)
 }
 
@@ -208,6 +233,7 @@ exports.html = htmlTask
 exports.pug = pugTask
 exports.css = sassTask
 exports.js = jsTask
+exports.ts = tsTask
 exports.images = imgTask
 exports.fonts = fontsTransformTask
 exports.fontsStyle = fontsConnectToStyleTask

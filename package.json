@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon ./src/js/index.js",
-    "ts": "nodemon --watch 'src/**/*.ts' --ignore 'src/**/*.spec.ts' --exec 'ts-node' src/ts/index.ts",
+    "start": "nodemon ./js/index.js",
+    "ts": "nodemon --watch 'ts/**/*.ts' --ignore 'ts/**/*.spec.ts' --exec 'ts-node' ts/index.ts",
     "test": "jest"
   },
   "repository": {
